@@ -1,0 +1,606 @@
+/* ==========================================================================
+   VARIABLES
+   ========================================================================== */
+:root {
+  /* Apple alterne presque toujours entre deux fonds : noir pur, et un gris
+     anthracite (#1d1d1f) — jamais de dégradés visibles sur les sections
+     elles-mêmes. Les dégradés/couleurs, eux, ne vivent que dans les
+     "blobs" flous qu'on aperçoit à travers le verre. */
+  --color-bg-1: #000000;
+  --color-bg-2: #1d1d1f;
+
+  --color-text: #f5f5f7;
+  /* #86868b est LE gris qu'Apple utilise pour tout texte secondaire sur
+     apple.com — sous-titres, légendes, liens de nav inactifs. */
+  --color-text-dim: #86868b;
+  --color-text-faint: rgba(134, 134, 139, 0.7);
+
+  --aurora-blue:   #4d7cff;
+  --aurora-purple: #a35dff;
+  --aurora-pink:   #ff6ec7;
+  --aurora-teal:   #3ee0c8;
+
+  --glass-bg: rgba(255, 255, 255, 0.06);
+  --glass-bg-strong: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-blur: 22px;
+
+  /* Le bleu-lien officiel d'Apple, utilisé pour les CTA et les liens. */
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+
+  --radius-lg: 28px;
+  --radius-md: 20px;
+  --radius-pill: 999px;
+  --max-width: 980px; /* largeur de contenu utilisée sur apple.com */
+
+  --font-title: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                "Space Grotesk", "Segoe UI", sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+               "Sora", "Segoe UI", sans-serif;
+}
+
+/* ==========================================================================
+   RESET
+   ========================================================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(77, 124, 255, 0.10), transparent 45%),
+    radial-gradient(circle at 80% 0%, rgba(163, 93, 255, 0.10), transparent 45%),
+    var(--color-bg-1);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  line-height: 1.5;
+  overflow-x: hidden;
+  letter-spacing: -0.01em;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-title);
+  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: -0.03em; /* typographie très resserrée, signature Apple */
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+}
+
+.section-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: clamp(4rem, 10vw, 7rem) 1.5rem;
+}
+
+.section-title {
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  margin-bottom: 0.6rem;
+  color: var(--color-text);
+}
+
+.section-subtitle {
+  color: var(--color-text-dim);
+  margin-bottom: 3rem;
+  max-width: 60ch;
+  font-size: 1.05rem;
+}
+
+/* ==========================================================================
+   LE "VERRE" — surfaces translucides : fond quasi-transparent + flou de
+   ce qu'il y a derrière + bordure fine qui capte la lumière. Les boutons
+   n'en font plus partie : sur apple.com les CTA sont des aplats de
+   couleur nets (bleu plein), jamais du verre.
+   ========================================================================== */
+.nav,
+.project-card,
+.skill-pill {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border: 1px solid var(--glass-border);
+}
+
+/* ==========================================================================
+   BOUTONS — un plein (bleu Apple) et un lien texte avec chevron, comme
+   les "Learn more ›" qu'on trouve sous chaque produit sur apple.com.
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.95rem;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  padding: 0.75rem 1.7rem;
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn-ghost {
+  background: none;
+  color: var(--accent);
+  font-weight: 400;
+  padding: 0.75rem 0;
+}
+
+.btn-ghost::after {
+  content: "›";
+  margin-left: 0.35rem;
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.btn-ghost:hover {
+  color: var(--accent-hover);
+}
+
+.btn-ghost:hover::after {
+  transform: translateX(3px);
+}
+
+/* ==========================================================================
+   NAVIGATION — barre fine, pleine largeur, toujours translucide : c'est
+   la nav réelle d'apple.com (44-52px de haut, texte minuscule, tout
+   centré), avec l'effet liquid glass appliqué par-dessus.
+   ========================================================================== */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.72);
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
+.nav-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: -0.02em;
+}
+
+.logo span {
+  color: var(--aurora-blue);
+}
+
+/* Le <nav> qui enveloppe la liste de liens : on le fait grandir pour
+   occuper tout l'espace central et centrer les liens, comme sur
+   apple.com où les items de nav sont répartis au milieu de la barre. */
+.nav-inner > nav {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2.2rem;
+}
+
+.nav-links a {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--color-text-dim);
+  transition: color 0.2s ease;
+}
+
+.nav-links a:hover {
+  color: var(--color-text);
+}
+
+.lang-toggle {
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  color: var(--color-text);
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  margin-left: 0.8rem;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.lang-toggle:hover {
+  background: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 0.6rem;
+}
+
+.nav-toggle span {
+  width: 20px;
+  height: 1.5px;
+  background: var(--color-text);
+  border-radius: 2px;
+}
+
+/* ==========================================================================
+   HERO
+   ========================================================================== */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6rem 1.5rem 4rem;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(130px);
+  opacity: 0.4;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.blob-1 {
+  width: 480px;
+  height: 480px;
+  background: var(--aurora-blue);
+  top: -15%;
+  left: -12%;
+  animation: float 16s ease-in-out infinite;
+}
+
+.blob-2 {
+  width: 420px;
+  height: 420px;
+  background: var(--aurora-teal);
+  bottom: -18%;
+  right: -10%;
+  animation: float 20s ease-in-out infinite reverse;
+}
+
+.blob-3 {
+  width: 320px;
+  height: 320px;
+  background: var(--aurora-purple);
+  top: 35%;
+  right: 10%;
+  animation: float 12s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(40px, -30px) scale(1.1); }
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
+}
+
+.hero-kicker {
+  color: var(--color-text-dim);
+  font-weight: 500;
+  font-size: 0.95rem;
+  margin-bottom: 0.8rem;
+}
+
+.hero-title {
+  font-size: clamp(3.2rem, 9vw, 6.5rem);
+  margin-bottom: 1.4rem;
+  letter-spacing: -0.04em;
+}
+
+.hero-subtitle {
+  color: var(--color-text-dim);
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  margin: 0 auto 2.6rem;
+  max-width: 560px;
+}
+
+.highlight {
+  color: var(--color-text);
+  font-weight: 500;
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  padding: 0.1em 0.5em;
+  border-radius: 8px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1.6rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.scroll-hint {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+.scroll-hint span {
+  display: block;
+  width: 22px;
+  height: 36px;
+  border: 2px solid var(--glass-border);
+  border-radius: 12px;
+  position: relative;
+}
+
+.scroll-hint span::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 4px;
+  height: 8px;
+  background: var(--color-text);
+  border-radius: 2px;
+  transform: translateX(-50%);
+  animation: scrollDot 1.6s ease-in-out infinite;
+}
+
+@keyframes scrollDot {
+  0%   { opacity: 1; top: 6px; }
+  100% { opacity: 0; top: 18px; }
+}
+
+/* ==========================================================================
+   À PROPOS — fond gris anthracite plein, comme les sections "texte" d'Apple
+   ========================================================================== */
+.about {
+  background: var(--color-bg-2);
+}
+
+.about-text {
+  color: var(--color-text-dim);
+  font-size: 1.2rem;
+  max-width: 65ch;
+}
+
+#age {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   PROJETS — fond noir plein
+   ========================================================================== */
+.projects {
+  background: var(--color-bg-1);
+}
+
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.6rem;
+}
+
+.project-card {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.project-card:hover {
+  transform: translateY(-8px);
+  background: var(--glass-bg-strong);
+  box-shadow: 0 20px 40px -16px rgba(0, 113, 227, 0.35);
+}
+
+.project-thumb {
+  height: 150px;
+  opacity: 0.85;
+}
+
+.thumb-1 { background: linear-gradient(135deg, var(--aurora-blue), var(--aurora-purple)); }
+.thumb-2 { background: linear-gradient(135deg, var(--aurora-teal), var(--aurora-blue)); }
+.thumb-3 { background: linear-gradient(135deg, var(--aurora-pink), var(--aurora-purple)); }
+
+.project-body {
+  padding: 1.6rem;
+}
+
+.project-body h3 {
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.project-body p {
+  color: var(--color-text-dim);
+  font-size: 0.95rem;
+  margin-bottom: 1.1rem;
+}
+
+.tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.3rem;
+}
+
+.tags li {
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  color: var(--color-text-dim);
+}
+
+.project-links a {
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.project-links a:hover {
+  color: var(--accent-hover);
+}
+
+/* ==========================================================================
+   COMPÉTENCES — fond gris anthracite plein
+   ========================================================================== */
+.skills {
+  background: var(--color-bg-2);
+}
+
+.skills-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.skill-pill {
+  padding: 0.65rem 1.3rem;
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--color-text-dim);
+  transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
+}
+
+.skill-pill:hover {
+  background: var(--glass-bg-strong);
+  color: var(--color-text);
+  transform: scale(1.05);
+}
+
+/* ==========================================================================
+   CONTACT — fond noir plein
+   ========================================================================== */
+.contact {
+  position: relative;
+  text-align: center;
+  overflow: hidden;
+  background: var(--color-bg-1);
+}
+
+.blob-4 {
+  width: 560px;
+  height: 560px;
+  background: linear-gradient(135deg, var(--aurora-purple), var(--aurora-blue));
+  top: -25%;
+  left: 50%;
+  transform: translateX(-50%);
+  filter: blur(140px);
+  opacity: 0.35;
+}
+
+.contact .section-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.contact-links {
+  display: flex;
+  gap: 1.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+.footer {
+  text-align: center;
+  padding: 2.2rem 1.5rem;
+  color: var(--color-text-faint);
+  font-size: 0.78rem;
+  background: var(--color-bg-1);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+@media (max-width: 720px) {
+  .nav-links {
+    position: fixed;
+    top: 52px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem;
+    gap: 1.2rem;
+    transform: translateY(-150%);
+    transition: transform 0.3s ease;
+  }
+
+  .nav-links.open {
+    transform: translateY(0);
+  }
+
+  .nav-toggle {
+    display: flex;
+  }
+}
+
+/* ==========================================================================
+   ACCESSIBILITÉ — repli si backdrop-filter n'est pas supporté
+   ========================================================================== */
+@supports not (backdrop-filter: blur(1px)) {
+  .nav,
+  .project-card,
+  .skill-pill {
+    background: rgba(20, 20, 24, 0.95);
+  }
+}

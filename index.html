@@ -1,31 +1,161 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LilAkai — Developer C++ / Java</title>
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LilAkai_ — Portfolio</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Sora:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <h1>LilAkai</h1>
-        <p>Developer C++ and Java — engines, tools, systems</p>
-    </header>
 
-    <main>
-        <section>
-            <h2>Projects</h2>
+  <header class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="#accueil" class="logo">Lil<span>Akai_</span></a>
+      <nav>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="#accueil" data-i18n="nav.home">Accueil</a></li>
+          <li><a href="#projets" data-i18n="nav.projects">Projets</a></li>
+          <li><a href="#competences" data-i18n="nav.skills">Compétences</a></li>
+          <li><a href="#contact" data-i18n="nav.contact">Contact</a></li>
+        </ul>
+      </nav>
+      <button class="lang-toggle" id="lang-toggle" aria-label="Switch language">EN</button>
+      <button class="nav-toggle" id="nav-toggle" aria-label="Ouvrir le menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
 
-            <article>
-                <h3>ECS-Engine</h3>
-                <p>Entity-Component-System engine written in Java.</p>
-                <a href="projets/ecs-engine.html">Learn more</a>
-            </article>
-        </section>
-    </main>
+  <section class="hero" id="accueil">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
 
-    <footer>
-        <p>Contact : fredouilleclement@gmail.com</p>
-    </footer>
+    <div class="hero-content">
+      <p class="hero-kicker" data-i18n="hero.kicker">👋 Salut, je suis</p>
+      <h1 class="hero-title">LilAkai_</h1>
+      <p class="hero-subtitle" data-i18n="hero.subtitle">
+        Développeur passionné — je construis des jeux, des outils et des
+        expériences en <span class="highlight">C</span>,
+        <span class="highlight">C++</span>,
+        <span class="highlight">Java</span> et
+        <span class="highlight">Swift</span>.
+      </p>
+      <div class="hero-actions">
+        <a href="#projets" class="btn btn-primary" data-i18n="hero.cta1">Voir mes projets</a>
+        <a href="#contact" class="btn btn-ghost" data-i18n="hero.cta2">Me contacter</a>
+      </div>
+    </div>
+
+    <a href="#projets" class="scroll-hint" id="scroll-hint" aria-label="Défiler vers le bas">
+      <span></span>
+    </a>
+  </section>
+
+  <section class="about" id="about">
+    <div class="section-inner">
+      <h2 class="section-title" data-i18n="about.title">À propos</h2>
+      <p class="about-text">
+        <span data-i18n="about.text1">Je suis un jeune développeur de</span>
+        <span id="age"></span>
+        <span data-i18n="about.text2">ans, je suis passionné depuis mon plus jeune âge. Je cherche constamment à améliorer et approfondir mes connaissances.</span>
+      </p>
+    </div>
+  </section>
+
+  <section class="projects" id="projets">
+    <div class="section-inner">
+      <h2 class="section-title" data-i18n="projects.title">Projets</h2>
+      <p class="section-subtitle" data-i18n="projects.subtitle">Une sélection de ce sur quoi j'ai travaillé récemment.</p>
+
+      <div class="project-grid">
+
+        <article class="project-card">
+          <div class="project-thumb thumb-1"></div>
+          <div class="project-body">
+            <h3>Ant Simulation</h3>
+            <p data-i18n="project.ant.desc">Ce projet est une simulation lightweight de fourmis </p>
+            <ul class="tags">
+              <li>C++</li>
+              <li>SFML</li>
+            </ul>
+            <div class="project-links">
+              <a href="https://github.com/LilAkai/ant_simulation" target="_blank" rel="noopener" data-i18n="project.sourceLink">Code source →</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="project-card">
+          <div class="project-thumb thumb-2"></div>
+          <div class="project-body">
+            <h3>Ariba Engine</h3>
+            <p data-i18n="project.ariba.desc">POO ECS Engine en C++</p>
+            <ul class="tags">
+              <li>C++</li>
+              <li>SFML</li>
+            </ul>
+            <div class="project-links">
+              <a href="https://github.com/LilAkai/ariba_engine" target="_blank" rel="noopener" data-i18n="project.sourceLink">Code source →</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="project-card">
+          <div class="project-thumb thumb-3"></div>
+          <div class="project-body">
+            <h3>Coming soon...</h3>
+            <p>Coming soon...</p>
+            <ul class="tags">
+              <li>Coming soon..</li>
+              <li>Coming soon..</li>
+            </ul>
+            <div class="project-links">
+              <a href="#" target="_blank" rel="noopener" data-i18n="project.sourceLink">Code source →</a>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="skills" id="competences">
+    <div class="section-inner">
+      <h2 class="section-title" data-i18n="skills.title">Compétences</h2>
+      <div class="skills-grid">
+        <div class="skill-pill">C++</div>
+        <div class="skill-pill">Java</div>
+        <div class="skill-pill">Swift</div>
+        <div class="skill-pill">C</div>
+        <div class="skill-pill">SFML</div>
+        <div class="skill-pill">HTML / CSS</div>
+        <div class="skill-pill">Git</div>
+        <div class="skill-pill">CMake</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact" id="contact">
+    <div class="blob blob-4"></div>
+    <div class="section-inner">
+      <h2 class="section-title" data-i18n="contact.title">Discutons</h2>
+      <p class="section-subtitle" data-i18n="contact.subtitle">
+        Un projet en tête, une question, ou juste envie d'échanger ? Écris-moi.
+      </p>
+      <div class="contact-links">
+        <a href="mailto:fredouilleclement@icloud.com" class="btn btn-primary" data-i18n="contact.emailBtn">✉ Envoyer un email</a>
+        <a href="https://github.com/LilAkai" target="_blank" rel="noopener" class="btn btn-ghost">GitHub</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>&copy; <span id="year"></span> LilAkai_ — <span data-i18n="footer.built">construit avec HTML &amp; CSS.</span></p>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>
