@@ -51,6 +51,26 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-snap-type: y proximity; /* "proximity" et non "mandatory" : ça
+    encourage l'alignement sur chaque section sans jamais bloquer le
+    scroll au milieu, plus confortable pour l'utilisateur */
+}
+
+.hero,
+.about,
+.projects,
+.skills,
+.contact,
+.project-card {
+  scroll-margin-top: 68px; /* compense la hauteur de la nav fixe (52px) + marge */
+}
+
+.hero,
+.about,
+.projects,
+.skills,
+.contact {
+  scroll-snap-align: start;
 }
 
 body {
@@ -107,13 +127,14 @@ ul {
    n'en font plus partie : sur apple.com les CTA sont des aplats de
    couleur nets (bleu plein), jamais du verre.
    ========================================================================== */
-.nav,
 .project-card,
 .skill-pill {
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   border: 1px solid var(--glass-border);
+  position: relative; /* nécessaire pour les pseudo-éléments d'animation ci-dessous */
+  overflow: hidden;
 }
 
 /* ==========================================================================
@@ -133,10 +154,49 @@ ul {
   padding: 0.75rem 1.7rem;
   border-radius: var(--radius-pill);
   font-weight: 500;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-primary:hover {
   background: var(--accent-hover);
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+/* ------------------------------------------------------------------
+   MIROITEMENT — un reflet diagonal qui balaie la surface au survol.
+   Le même principe (dégradé incliné qui glisse de gauche à droite)
+   est réutilisé plus bas pour les cartes projets et les pastilles.
+   ------------------------------------------------------------------ */
+.btn-primary::after,
+.project-card::after,
+.skill-pill::after,
+.lang-toggle::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    transparent
+  );
+  transform: skewX(-20deg);
+  transition: left 0.7s ease;
+  pointer-events: none;
+}
+
+.btn-primary:hover::after,
+.project-card:hover::after,
+.skill-pill:hover::after,
+.lang-toggle:hover::after {
+  left: 125%;
 }
 
 .btn-ghost {
@@ -173,10 +233,24 @@ ul {
   right: 0;
   z-index: 100;
   width: 100%;
-  background: rgba(0, 0, 0, 0.72);
+  background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid transparent;
   box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition: background 0.4s ease, border-color 0.4s ease,
+              backdrop-filter 0.4s ease;
+}
+
+/* Ajoutée en JS (script.js) dès qu'on quitte le haut de la page : la nav
+   "se matérialise" en verre, exactement comme sur apple.com où la barre
+   est invisible sur le premier écran puis devient opaque au scroll. */
+.nav.scrolled {
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .nav-inner {
@@ -189,11 +263,54 @@ ul {
   justify-content: space-between;
 }
 
+.panel-toggle {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  margin-right: 0.9rem;
+}
+
+.panel-toggle span {
+  width: 18px;
+  height: 1.5px;
+  background: var(--color-text);
+  border-radius: 2px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Le hamburger se transforme en croix quand le panneau est ouvert */
+.panel-toggle[aria-expanded="true"] span:nth-child(1) {
+  transform: translateY(5.5px) rotate(45deg);
+}
+
+.panel-toggle[aria-expanded="true"] span:nth-child(2) {
+  opacity: 0;
+}
+
+.panel-toggle[aria-expanded="true"] span:nth-child(3) {
+  transform: translateY(-5.5px) rotate(-45deg);
+}
+
 .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   font-family: var(--font-title);
   font-weight: 600;
   font-size: 0.95rem;
   letter-spacing: -0.02em;
+}
+
+.logo-mark {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 8px;
 }
 
 .logo span {
@@ -236,6 +353,8 @@ ul {
   border-radius: var(--radius-pill);
   cursor: pointer;
   margin-left: 0.8rem;
+  position: relative;
+  overflow: hidden;
   transition: background 0.2s ease, transform 0.2s ease;
 }
 
@@ -244,21 +363,147 @@ ul {
   transform: translateY(-1px);
 }
 
-.nav-toggle {
-  display: none;
+/* ==========================================================================
+   PANNEAU LATÉRAL — tiroir de navigation en verre qui glisse depuis la
+   gauche, avec un sous-menu déroulant pour accéder directement à un
+   projet précis sans avoir à scroller toute la section.
+   ========================================================================== */
+.side-panel-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  z-index: 190;
+}
+
+.side-panel-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.side-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: min(84%, 320px);
+  background: rgba(10, 10, 16, 0.78);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border-right: 1px solid var(--glass-border);
+  box-shadow: 24px 0 60px -20px rgba(0, 0, 0, 0.6);
+  transform: translateX(-100%);
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 200;
+  display: flex;
   flex-direction: column;
-  gap: 5px;
+  padding: 1.5rem 1.2rem;
+  overflow-y: auto;
+}
+
+.side-panel.open {
+  transform: translateX(0);
+}
+
+.side-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding: 0 0.4rem;
+}
+
+.side-panel-title {
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.side-panel-close {
+  background: none;
+  border: none;
+  color: var(--color-text-dim);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.3rem;
+  transition: color 0.2s ease;
+}
+
+.side-panel-close:hover {
+  color: var(--color-text);
+}
+
+.side-panel-nav ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.side-panel-nav > ul > li > a,
+.side-submenu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  text-align: left;
   background: none;
   border: none;
   cursor: pointer;
-  margin-left: 0.6rem;
+  color: var(--color-text-dim);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 0.8rem 0.6rem;
+  border-radius: 12px;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
-.nav-toggle span {
-  width: 20px;
-  height: 1.5px;
-  background: var(--color-text);
-  border-radius: 2px;
+.side-panel-nav > ul > li > a:hover,
+.side-submenu-toggle:hover {
+  background: var(--glass-bg-strong);
+  color: var(--color-text);
+}
+
+.side-submenu-arrow {
+  transition: transform 0.3s ease;
+  color: var(--color-text-faint);
+}
+
+.side-submenu-toggle[aria-expanded="true"] .side-submenu-arrow {
+  transform: rotate(90deg);
+}
+
+/* Le sous-menu s'anime via max-height plutôt que display:none/block,
+   pour pouvoir transitionner en douceur à l'ouverture/fermeture. */
+.side-submenu {
+  max-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding-left: 0.9rem;
+  transition: max-height 0.4s ease;
+}
+
+.side-submenu.open {
+  max-height: 220px;
+}
+
+.side-submenu li a {
+  display: block;
+  padding: 0.6rem 0.6rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: var(--color-text-faint);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.side-submenu li a:hover {
+  background: var(--glass-bg);
+  color: var(--color-text);
 }
 
 /* ==========================================================================
@@ -311,8 +556,8 @@ ul {
 }
 
 @keyframes float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50%      { transform: translate(40px, -30px) scale(1.1); }
+  0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  50%      { transform: translate(40px, -30px) rotate(10deg) scale(1.1); }
 }
 
 .hero-content {
@@ -398,6 +643,10 @@ ul {
    ========================================================================== */
 .about {
   background: var(--color-bg-2);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .about-text {
@@ -416,6 +665,10 @@ ul {
    ========================================================================== */
 .projects {
   background: var(--color-bg-1);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .project-grid {
@@ -426,14 +679,36 @@ ul {
 
 .project-card {
   border-radius: var(--radius-lg);
-  overflow: hidden;
   transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+  --mx: 50%;
+  --my: 50%;
 }
 
 .project-card:hover {
   transform: translateY(-8px);
   background: var(--glass-bg-strong);
   box-shadow: 0 20px 40px -16px rgba(0, 113, 227, 0.35);
+}
+
+/* Halo qui suit la souris : --mx/--my sont mis à jour en JS (script.js)
+   à chaque mousemove sur la carte, ce qui donne l'impression que la
+   lumière traverse réellement le verre à l'endroit où on le regarde. */
+.project-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at var(--mx) var(--my),
+    rgba(255, 255, 255, 0.16),
+    transparent 55%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.project-card:hover::before {
+  opacity: 1;
 }
 
 .project-thumb {
@@ -491,6 +766,10 @@ ul {
    ========================================================================== */
 .skills {
   background: var(--color-bg-2);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .skills-grid {
@@ -500,12 +779,23 @@ ul {
 }
 
 .skill-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   padding: 0.65rem 1.3rem;
   border-radius: var(--radius-pill);
   font-weight: 500;
   font-size: 0.9rem;
   color: var(--color-text-dim);
   transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
+}
+
+.skill-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: inherit; /* l'icône hérite de la couleur du texte du parent,
+                     donc elle change de teinte avec lui au survol */
 }
 
 .skill-pill:hover {
@@ -522,6 +812,10 @@ ul {
   text-align: center;
   overflow: hidden;
   background: var(--color-bg-1);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .blob-4 {
@@ -567,40 +861,72 @@ ul {
    RESPONSIVE
    ========================================================================== */
 @media (max-width: 720px) {
-  .nav-links {
-    position: fixed;
-    top: 52px;
-    left: 0;
-    right: 0;
-    width: 100%;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    flex-direction: column;
-    align-items: center;
-    padding: 1.5rem;
-    gap: 1.2rem;
-    transform: translateY(-150%);
-    transition: transform 0.3s ease;
-  }
-
-  .nav-links.open {
-    transform: translateY(0);
-  }
-
-  .nav-toggle {
-    display: flex;
+  /* Sur petit écran, la liste de liens du haut disparaît : le panneau
+     latéral (panel-toggle) devient l'unique point d'entrée de la
+     navigation, pour éviter d'avoir deux hamburgers différents. */
+  .nav-inner > nav {
+    display: none;
   }
 }
 
 /* ==========================================================================
-   ACCESSIBILITÉ — repli si backdrop-filter n'est pas supporté
+   RÉVÉLATION AU SCROLL — la classe "reveal" est ajoutée en JS à l'entrée
+   de la page (script.js) aux titres, cartes et pastilles ; "in-view" est
+   ajoutée par un IntersectionObserver quand l'élément entre à l'écran.
+   L'idée : l'élément part flou et léger, puis se "condense" en netteté,
+   comme s'il se matérialisait à travers le verre.
+   ========================================================================== */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px) scale(0.98);
+  filter: blur(8px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.in-view {
+  opacity: 1;
+  transform: none;
+  filter: blur(0);
+}
+
+/* ==========================================================================
+   ACCESSIBILITÉ
    ========================================================================== */
 @supports not (backdrop-filter: blur(1px)) {
   .nav,
   .project-card,
   .skill-pill {
     background: rgba(20, 20, 24, 0.95);
+  }
+}
+
+/* Certaines personnes désactivent les animations au niveau système
+   (fatigue visuelle, mal des transports...). On respecte ce choix en
+   neutralisant tout ce qui bouge, y compris le flou d'apparition. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+    scroll-snap-type: none;
+  }
+
+  .blob,
+  .scroll-hint span::before {
+    animation: none;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+
+  .btn-primary::after,
+  .project-card::after,
+  .skill-pill::after,
+  .lang-toggle::after {
+    display: none;
   }
 }

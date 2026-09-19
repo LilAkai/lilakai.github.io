@@ -1,19 +1,3 @@
-// Menu mobile : on ouvre/ferme la liste de liens en ajoutant/retirant
-// la classe "open" (voir style.css, règle .nav-links.open)
-const navToggle = document.getElementById('nav-toggle');
-const navLinks = document.getElementById('nav-links');
-
-navToggle.addEventListener('click', () => {
-  navLinks.classList.toggle('open');
-});
-
-// Ferme le menu automatiquement quand on clique sur un lien (mobile)
-navLinks.querySelectorAll('a').forEach(link => {
-  link.addEventListener('click', () => {
-    navLinks.classList.remove('open');
-  });
-});
-
 // Met à jour l'année dans le footer automatiquement, plutôt que de
 // l'écrire en dur et devoir y penser chaque nouvelle année
 document.getElementById('year').textContent = new Date().getFullYear();
@@ -63,6 +47,7 @@ if (ageElement) {
 const translations = {
   fr: {
     'nav.home': 'Accueil',
+    'nav.about': 'À propos',
     'nav.projects': 'Projets',
     'nav.skills': 'Compétences',
     'nav.contact': 'Contact',
@@ -92,6 +77,7 @@ const translations = {
   },
   en: {
     'nav.home': 'Home',
+    'nav.about': 'About',
     'nav.projects': 'Projects',
     'nav.skills': 'Skills',
     'nav.contact': 'Contact',
@@ -122,7 +108,7 @@ const translations = {
 };
 
 const langToggle = document.getElementById('lang-toggle');
-const navToggleBtn = document.getElementById('nav-toggle');
+const panelToggleBtn = document.getElementById('panel-toggle');
 const scrollHint = document.getElementById('scroll-hint');
 
 function applyLanguage(lang) {
@@ -137,7 +123,7 @@ function applyLanguage(lang) {
 
   // aria-label ne peut pas être ciblé par data-i18n (ce n'est pas du texte
   // visible), donc on le met à jour "à la main" ici.
-  navToggleBtn.setAttribute('aria-label', dict['nav.openMenu']);
+  panelToggleBtn.setAttribute('aria-label', dict['nav.openMenu']);
   scrollHint.setAttribute('aria-label', dict['hero.scrollDown']);
 
   document.documentElement.lang = lang;
@@ -158,4 +144,142 @@ langToggle.addEventListener('click', () => {
 const savedLang = localStorage.getItem('lang');
 if (savedLang === 'en') {
   applyLanguage('en');
+}
+
+// On respecte le réglage système "réduire les animations" : les effets
+// ci-dessous (halo curseur, apparitions au scroll) sont purement
+// décoratifs, donc on les désactive entièrement pour ces visiteurs.
+const prefersReducedMotion = window.matchMedia(
+  '(prefers-reduced-motion: reduce)'
+).matches;
+
+// ------------------------------------------------------------------
+// Panneau latéral (tiroir de navigation) + sous-menu "Projets"
+// ------------------------------------------------------------------
+const panelToggle = document.getElementById('panel-toggle');
+const sidePanel = document.getElementById('side-panel');
+const sidePanelOverlay = document.getElementById('side-panel-overlay');
+const sidePanelClose = document.getElementById('side-panel-close');
+const submenuToggle = document.getElementById('side-submenu-toggle');
+const submenu = document.getElementById('side-submenu');
+
+function openPanel() {
+  sidePanel.classList.add('open');
+  sidePanelOverlay.classList.add('visible');
+  panelToggle.setAttribute('aria-expanded', 'true');
+  sidePanel.setAttribute('aria-hidden', 'false');
+  // Empêche la page de défiler derrière le panneau pendant qu'il est ouvert
+  document.body.style.overflow = 'hidden';
+}
+
+function closePanel() {
+  sidePanel.classList.remove('open');
+  sidePanelOverlay.classList.remove('visible');
+  panelToggle.setAttribute('aria-expanded', 'false');
+  sidePanel.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+panelToggle.addEventListener('click', () => {
+  const isOpen = sidePanel.classList.contains('open');
+  isOpen ? closePanel() : openPanel();
+});
+
+sidePanelClose.addEventListener('click', closePanel);
+sidePanelOverlay.addEventListener('click', closePanel);
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && sidePanel.classList.contains('open')) {
+    closePanel();
+  }
+});
+
+// Sous-menu "Projets" : s'ouvre/se ferme indépendamment du panneau
+submenuToggle.addEventListener('click', () => {
+  const isOpen = submenu.classList.toggle('open');
+  submenuToggle.setAttribute('aria-expanded', String(isOpen));
+});
+
+// Cliquer sur un lien (y compris un lien de projet dans le sous-menu)
+// referme le panneau, pour qu'on retrouve directement la section visée.
+sidePanel.querySelectorAll('a').forEach(link => {
+  link.addEventListener('click', closePanel);
+});
+
+// ------------------------------------------------------------------
+// Nav qui "se matérialise" au scroll
+//
+// Transparente sur le premier écran (le hero), elle devient un
+// panneau de verre dès qu'on quitte le haut de la page — comportement
+// identique à la vraie barre de navigation d'apple.com.
+// ------------------------------------------------------------------
+const navEl = document.getElementById('nav');
+
+function updateNavOnScroll() {
+  navEl.classList.toggle('scrolled', window.scrollY > 40);
+}
+
+updateNavOnScroll(); // état correct si la page est rouverte déjà scrollée
+window.addEventListener('scroll', updateNavOnScroll, { passive: true });
+
+if (!prefersReducedMotion) {
+  // --------------------------------------------------------------
+  // Halo qui suit le curseur sur les cartes projets
+  //
+  // À chaque déplacement de la souris sur une carte, on calcule sa
+  // position en pourcentage (0-100%) par rapport aux bords de la
+  // carte, et on la stocke dans deux variables CSS (--mx, --my) que
+  // le dégradé radial de .project-card::before utilise pour se
+  // positionner. Résultat : la lumière semble traverser le verre
+  // exactement là où pointe la souris.
+  // --------------------------------------------------------------
+  document.querySelectorAll('.project-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      card.style.setProperty('--mx', `${x}%`);
+      card.style.setProperty('--my', `${y}%`);
+    });
+  });
+
+  // --------------------------------------------------------------
+  // Apparitions au scroll
+  //
+  // On ajoute la classe "reveal" (définie en CSS : élément flou et
+  // transparent) aux blocs qu'on veut animer, puis un
+  // IntersectionObserver ajoute "in-view" dès que chacun entre dans
+  // le viewport — l'élément devient alors net et opaque. Un léger
+  // décalage (transitionDelay) selon la position dans son groupe
+  // donne un effet d'apparition en cascade plutôt que tout d'un coup.
+  // --------------------------------------------------------------
+  const revealGroups = [
+    document.querySelectorAll('.hero-kicker, .hero-title, .hero-subtitle, .hero-actions'),
+    document.querySelectorAll('.about .section-title, .about-text'),
+    document.querySelectorAll('.projects .section-title, .projects .section-subtitle'),
+    document.querySelectorAll('.project-card'),
+    document.querySelectorAll('.skills .section-title'),
+    document.querySelectorAll('.skill-pill'),
+    document.querySelectorAll('.contact .section-title, .contact .section-subtitle, .contact-links'),
+  ];
+
+  const observer = new IntersectionObserver(
+    entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.15 }
+  );
+
+  revealGroups.forEach(group => {
+    group.forEach((el, i) => {
+      el.classList.add('reveal');
+      el.style.transitionDelay = `${(i % 6) * 0.08}s`;
+      observer.observe(el);
+    });
+  });
 }
